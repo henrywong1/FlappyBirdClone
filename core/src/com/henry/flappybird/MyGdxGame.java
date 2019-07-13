@@ -20,14 +20,14 @@ public class MyGdxGame extends ApplicationAdapter {
 	Texture topTube;
 	Texture botTube;
 
-	float gravity = 0.4f;
+	float gravity = 2f;
 	float velocity = 0;
 
 	int birdState = 0;
 	int score = 0;
 	int pause = 0;
 	int birdY = 0;
-
+	int gameState = 0;
 
 	@Override
 	public void create () {
@@ -39,36 +39,48 @@ public class MyGdxGame extends ApplicationAdapter {
 		botTube = new Texture("bottomtube.png");
 		background = new Texture("bg.png");
 
-		birdY = Gdx.graphics.getHeight() / 2;
+		birdY = Gdx.graphics.getHeight() / 2 - bird[0].getHeight();
 	}
+
+	public void spawnTube() {
+
+	}
+
 
 	@Override
 	public void render () {
-		batch.begin();
-		batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+		if (gameState != 0 ) {
+			if (Gdx.input.justTouched()) {
+
+				velocity = -35;
+			}
+
+			if (birdY > 0 || velocity < 0) {
+				velocity += gravity;
+				birdY -= velocity;
+			}
 
 
-		if (Gdx.input.justTouched()) {
-			velocity = -10;
-		}
-		if (pause < 12) {
-			pause++;
+
 		} else {
-			pause = 0;
-			if (birdState < 1) {
-				birdState++;
-			} else {
-				birdState = 0;
+			if (Gdx.input.justTouched()) {
+
+				gameState = 1;
 			}
 		}
-		velocity += gravity;
-		birdY -= velocity;
-		if (birdY <= 0) {
-			birdY = 0;
-		}
-		batch.draw(bird[birdState], Gdx.graphics.getWidth() / 2 - bird[birdState].getWidth() / 2, birdY);
 
+		if (birdState == 0) {
+			birdState = 1;
+		} else {
+			birdState = 0;
+		}
+
+		batch.begin();
+		batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		batch.draw(bird[birdState], Gdx.graphics.getWidth() / 2 - bird[birdState].getWidth() / 2, birdY);
 		batch.end();
+
 	}
 
 }

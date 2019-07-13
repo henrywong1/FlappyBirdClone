@@ -20,7 +20,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	Texture topTube;
 	Texture botTube;
 
-	float gravity = 0.2f;
+	float gravity = 0.4f;
 	float velocity = 0;
 
 	int birdState = 0;
@@ -38,6 +38,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		topTube = new Texture("toptube.png");
 		botTube = new Texture("bottomtube.png");
 		background = new Texture("bg.png");
+
+		birdY = Gdx.graphics.getHeight() / 2;
 	}
 
 	@Override
@@ -49,7 +51,6 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (Gdx.input.justTouched()) {
 			velocity = -10;
 		}
-
 		if (pause < 12) {
 			pause++;
 		} else {
@@ -65,7 +66,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (birdY <= 0) {
 			birdY = 0;
 		}
-		batch.draw(bird[birdState], Gdx.graphics.getWidth() / 2 - bird[birdState].getWidth(), Gdx.graphics.getHeight() / 2 - bird[birdState].getHeight());
+		batch.draw(bird[birdState], Gdx.graphics.getWidth() / 2 - bird[birdState].getWidth() / 2, birdY);
 
 		batch.end();
 	}

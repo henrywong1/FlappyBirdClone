@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.io.Console;
+import java.util.Random;
 
 import javax.xml.soap.Text;
 
@@ -22,6 +23,15 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	float gravity = 2f;
 	float velocity = 0;
+	float gap = 475;
+	float tubeOffset;
+
+	float tubeVelocity = 4f;
+	float tubeDistance;
+	int numOfTubes = 4;
+	float[] tubeX = new float[numOfTubes];
+	float[] tempTubeOffset = new float[numOfTubes];
+	Random rand;
 
 	int birdState = 0;
 	int score = 0;
@@ -39,10 +49,17 @@ public class MyGdxGame extends ApplicationAdapter {
 		botTube = new Texture("bottomtube.png");
 		background = new Texture("bg.png");
 
-		birdY = Gdx.graphics.getHeight() / 2 - bird[0].getHeight();
-	}
+		tubeOffset = Gdx.graphics.getHeight() / 2 - gap / 2 - 100;
 
-	public void spawnTube() {
+		birdY = Gdx.graphics.getHeight() / 2 - bird[0].getHeight();
+
+		rand = new Random();
+		tubeDistance = Gdx.graphics.getWidth() / 2;
+
+		for (int i = 0; i < numOfTubes; i++) {
+			tubeX[i] = Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2 + i * tubeDistance;
+			tempTubeOffset[i] = (rand.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - gap - 780);
+		}
 
 	}
 
@@ -50,17 +67,35 @@ public class MyGdxGame extends ApplicationAdapter {
 	@Override
 	public void render () {
 
+		batch.begin();
+		batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
 		if (gameState != 0 ) {
 			if (Gdx.input.justTouched()) {
 
 				velocity = -35;
+
 			}
+			for (int i = 0; i < numOfTubes; i++) {
+
+				if (tubeX[i] < - topTube.getWidth()) {
+
+					tubeX[i] += numOfTubes * tubeDistance;
+					tempTubeOffset[i] = (rand.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - gap - 780);
+
+				}
+
+				tubeX[i] = tubeX[i] - tubeVelocity;
+
+				batch.draw(topTube, tubeX[i], Gdx.graphics.getHeight() / 2  + gap / 2 + tempTubeOffset[i]);
+				batch.draw(botTube, tubeX[i], Gdx.graphics.getHeight() / 2  - gap / 2 - botTube.getHeight() + tempTubeOffset[i]);
+			}
+
 
 			if (birdY > 0 || velocity < 0) {
 				velocity += gravity;
 				birdY -= velocity;
 			}
-
 
 
 		} else {
@@ -76,8 +111,10 @@ public class MyGdxGame extends ApplicationAdapter {
 			birdState = 0;
 		}
 
-		batch.begin();
-		batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+
+
+
 		batch.draw(bird[birdState], Gdx.graphics.getWidth() / 2 - bird[birdState].getWidth() / 2, birdY);
 		batch.end();
 

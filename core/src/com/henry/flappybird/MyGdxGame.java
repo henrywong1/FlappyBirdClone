@@ -4,8 +4,14 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Rectangle;
 
+import java.awt.Color;
 import java.io.Console;
 import java.util.Random;
 
@@ -15,6 +21,15 @@ import sun.rmi.runtime.Log;
 
 public class MyGdxGame extends ApplicationAdapter {
 	SpriteBatch batch;
+
+	ShapeRenderer shapeRenderer;
+
+	Circle birdCircle;
+
+	Rectangle[] topRect;
+	Rectangle[] botRect;
+
+	BitmapFont font;
 
 	Texture background;
 	Texture[] bird;
@@ -35,7 +50,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	int birdState = 0;
 	int score = 0;
-	int pause = 0;
+	int scoreTube = 0;
 	int birdY = 0;
 	int gameState = 0;
 
@@ -56,10 +71,22 @@ public class MyGdxGame extends ApplicationAdapter {
 		rand = new Random();
 		tubeDistance = Gdx.graphics.getWidth() / 2;
 
+		topRect = new Rectangle[numOfTubes];
+		botRect = new Rectangle[numOfTubes];
+
 		for (int i = 0; i < numOfTubes; i++) {
-			tubeX[i] = Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2 + i * tubeDistance;
+			tubeX[i] = Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2 + Gdx.graphics.getWidth() + i * tubeDistance;
 			tempTubeOffset[i] = (rand.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - gap - 780);
+
+			topRect[i] = new Rectangle();
+			botRect[i] = new Rectangle();
+
 		}
+		shapeRenderer = new ShapeRenderer();
+		birdCircle = new Circle();
+		font = new BitmapFont();
+		font.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+		font.getData().setScale(10);
 
 	}
 
@@ -70,7 +97,21 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.begin();
 		batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-		if (gameState != 0 ) {
+		if (gameState == 1 ) {
+
+			if (tubeX[scoreTube] < Gdx.graphics.getWidth() / 2) {
+
+				score++;
+
+				Gdx.app.log("SCORE", Integer.toString(score));
+
+				if (scoreTube < numOfTubes - 1) {
+					scoreTube++;
+				} else {
+					scoreTube = 0;
+				}
+			}
+
 			if (Gdx.input.justTouched()) {
 
 				velocity = -35;
@@ -83,12 +124,18 @@ public class MyGdxGame extends ApplicationAdapter {
 					tubeX[i] += numOfTubes * tubeDistance;
 					tempTubeOffset[i] = (rand.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - gap - 780);
 
-				}
+				} else {
+					tubeX[i] = tubeX[i] - tubeVelocity;
 
-				tubeX[i] = tubeX[i] - tubeVelocity;
+
+				}
 
 				batch.draw(topTube, tubeX[i], Gdx.graphics.getHeight() / 2  + gap / 2 + tempTubeOffset[i]);
 				batch.draw(botTube, tubeX[i], Gdx.graphics.getHeight() / 2  - gap / 2 - botTube.getHeight() + tempTubeOffset[i]);
+
+				topRect[i] = new Rectangle(tubeX[i], Gdx.graphics.getHeight() / 2 + gap / 2 + tempTubeOffset[i], topTube.getWidth(), topTube.getHeight());
+				botRect[i] = new Rectangle(tubeX[i], Gdx.graphics.getHeight() / 2  - gap / 2 - botTube.getHeight() + tempTubeOffset[i], botTube.getWidth(), botTube.getHeight());
+
 			}
 
 
@@ -97,11 +144,25 @@ public class MyGdxGame extends ApplicationAdapter {
 				birdY -= velocity;
 			}
 
-
-		} else {
+		} else if (gameState == 0){
 			if (Gdx.input.justTouched()) {
 
 				gameState = 1;
+
+			}
+		} else if (gameState == 2) {
+			if (Gdx.input.justTouched()) {
+				gameState = 1;
+				score = 0;
+				birdY = Gdx.graphics.getHeight() / 2 - bird[0].getHeight() / 2;
+				for (int i = 0; i < numOfTubes; i++) {
+					tempTubeOffset[i] = (rand.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - gap - 780);
+					tubeX[i] = Gdx.graphics.getWidth() / 2 - topTube.getWidth() / 2 + Gdx.graphics.getWidth() + i * tubeDistance;
+					topRect[i] = new Rectangle();
+					botRect[i] = new Rectangle();
+				}
+				scoreTube = 0;
+				velocity = 0;
 			}
 		}
 
@@ -114,10 +175,31 @@ public class MyGdxGame extends ApplicationAdapter {
 
 
 
-
 		batch.draw(bird[birdState], Gdx.graphics.getWidth() / 2 - bird[birdState].getWidth() / 2, birdY);
-		batch.end();
+		font.draw(batch, Integer.toString(score), 100 ,200);
 
+
+
+
+		birdCircle.set(Gdx.graphics.getWidth() / 2, birdY + bird[birdState].getHeight() / 2, bird[birdState].getWidth() / 2);
+
+
+//		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+//		shapeRenderer.setColor(com.badlogic.gdx.graphics.Color.RED);
+//		shapeRenderer.circle(birdCircle.x, birdCircle.y, birdCircle.radius);
+
+		for (int i = 0; i < numOfTubes; i++) {
+//
+//			shapeRenderer.rect(tubeX[i], Gdx.graphics.getHeight() / 2 + gap / 2 + tempTubeOffset[i], topTube.getWidth(), topTube.getHeight());
+//			shapeRenderer.rect(tubeX[i], Gdx.graphics.getHeight() / 2 - gap / 2 - botTube.getHeight() + tempTubeOffset[i], botTube.getWidth(), botTube.getHeight());
+
+			if (Intersector.overlaps(birdCircle, topRect[i]) || Intersector.overlaps(birdCircle, botRect[i])) {
+
+				gameState = 2;
+			}
+
+		}
+		batch.end();
 	}
 
 }
